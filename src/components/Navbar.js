@@ -1,7 +1,7 @@
 function NavBar(){
 return(
 <>
-<div className="bg-black w-full h-[70px] fixed">hii</div>
+<div className="bg-black w-full h-[70px] fixed z-20">hii</div>
 </>
 )
 }
