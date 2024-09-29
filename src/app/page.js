@@ -7,12 +7,12 @@ import Image from "next/image";
 export default function Home() {
   return (
     <>
-    <NavBar></NavBar>
-    <SideBar></SideBar>
-    <div className="ml-[80px] px-8 py-6 flex flex-col gap-6">
-    <Header></Header>
-    <Table></Table>
-    </div>
+      <NavBar></NavBar>
+      <SideBar></SideBar>
+      <div className="ml-[80px] px-8 py-6 flex flex-col gap-6">
+        <Header></Header>
+        <Table></Table>
+      </div>
     </>
   );
 }
