@@ -13,40 +13,40 @@ const initialState = {
         "0",
       ],
       variants: [
-        { img: "./img1.jpeg", desc: "product...Singleewkjnfjrwnjjj" },
-        { img: "./retainiq_logo.jpeg", desc: "product...Singleewkjnfjrwnjjj" },
+        { img: "./img4.jpeg", desc: "img4" },
+        { img: "./img5.jpeg", desc: "img5" },
       ],
     },
     {
       id: "2",
       filters: ["tags", "contains", "onsale"],
       variants: [
-        { img: "./img2.jpeg", desc: "product...Singleewkjnfjrwnjjj" },
-        { img: "./img3.jpeg", desc: "product...Singleewkjnfjrwnjjj" },
+        { img: "./img6.jpeg", desc: "img6" },
+        { img: "./img7.jpeg", desc: "img7" },
       ],
     },
     {
       id: "3",
       filters: ["tags", "contains", "__label:New"],
       variants: [
-        { img: "./retainiq_logo.jpeg", desc: "product...Singleewkjnfjrwnjjj" },
-        { img: "./img2.jpeg", desc: "product...Singleewkjnfjrwnjjj" },
+        { img: "./img8.jpeg", desc: "img8" },
+        { img: "./img9.jpeg", desc: "img9" },
       ],
     },
     {
       id: "4",
       filters: ["Discount Percentage", "is", "0"],
       variants: [
-        { img: "./img1.jpeg", desc: "product...Singleewkjnfjrwnjjj" },
-        { img: "./img2.jpeg", desc: "product...Singleewkjnfjrwnjjj" },
+        { img: "./img10.jpeg", desc: "img10" },
+        { img: "./img12.jpeg", desc: "img12" },
       ],
     },
     {
       id: "5",
       filters: ["image_list.Product Image 2", "is", "empty"],
       variants: [
-        { img: "./img1.jpeg", desc: "product...Singleewkjnfjrwnjjj" },
-        { img: "./img3.jpeg", desc: "product...Singleewkjnfjrwnjjj" },
+        { img: "./img11.jpeg", desc: "img11" },
+        { img: "./img13.jpeg", desc: "this is a long desc for testing" },
       ],
     },
   ],
@@ -100,9 +100,18 @@ export const tableDataSlice = createSlice({
       const [reorderedItem] = state.data.splice(sourceIndex, 1);
       state.data.splice(destinationIndex, 0, reorderedItem);
     },
+    addImageToCell: (state, action) => {
+        const { rowId, variantIndex, imagePath, name } = action.payload;
+        console.log( rowId, variantIndex, imagePath);
+        const rowToUpdate = state.data.find(row => row.id === rowId);
+        if (rowToUpdate && rowToUpdate.variants[variantIndex]) {
+          rowToUpdate.variants[variantIndex].img = imagePath;
+          rowToUpdate.variants[variantIndex].desc = name;
+        }
+      },
   },
 });
 
-export const { addRow, deleteRow, addColumn, deleteColumn, reorderRows } =
+export const { addRow, deleteRow, addColumn, deleteColumn, reorderRows, addImageToCell } =
   tableDataSlice.actions;
 export default tableDataSlice.reducer;

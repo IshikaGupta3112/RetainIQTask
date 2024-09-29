@@ -25,3 +25,30 @@ body {
     text-wrap: balance;
   }
 }
+
+.modal-90w {
+  max-width: 90%;
+  width: 90%;
+}
+
+.modal-center {
+  display: flex !important;
+  align-items: center;
+  min-height: calc(100% - 1rem);
+}
+
+.modal-center::before {
+  content: '';
+  height: calc(100vh - 500px);
+  display: block;
+}
+
+.modal-90w .modal-content {
+  max-height: 500px;
+  overflow: hidden;
+}
+
+.modal-90w .modal-dialog {
+  max-width: none;
+  margin: auto;
+}

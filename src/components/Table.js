@@ -6,16 +6,20 @@ import {
   deleteColumn,
   deleteRow,
   reorderRows,
+  addImageToCell
 } from "@/redux/slice";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import Modal from "react-bootstrap/Modal";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { imgArr } from "./img";
 
 function Table() {
   const [hoveredRow, setHoveredRow] = useState(null);
   const [hoveredCol, setHoveredCol] = useState(null);
+  const [row, setRow] = useState(null);
+  const [col, setCol] = useState(null);
   const [show, setShow] = useState(false);
   const closeDialog = () => setShow(false);
 
@@ -39,15 +43,33 @@ function Table() {
   };
 
   const handleDesign = (id, ind) => {
-    console.log(id, ind);
+    setRow(id);
+    setCol(ind);
     setShow(true);
   };
+
+  const extractFileName = (path) => {
+    return path.split('/').pop().split('.')[0];
+  };
+  const shortenDesc = (desc, maxLength = 20) => {
+    if (desc.length <= maxLength) return desc;
+    return desc.slice(0, maxLength) + '...';
+  };
+
+  const handleDesignImg=(i)=>{
+ dispatch(addImageToCell({
+    rowId: row,
+    variantIndex: col,
+    imagePath: i,
+    name:extractFileName(i)
+  }));
+  closeDialog();
+  }
 
   const onDragEnd = (result) => {
     if (!result.destination) {
       return;
     }
-
     dispatch(
       reorderRows({
         sourceIndex: result.source.index,
@@ -126,7 +148,7 @@ function Table() {
                                 ></img>
                                 <div className="flex m-0 items-center justify-center">
                                   <p>{index + 1}</p>
-                                  <img src="./drag.svg" className=""></img>
+                                  <img src="./drag.svg" className="-mt-3"></img>
                                 </div>
                               </div>
                             </td>
@@ -167,7 +189,7 @@ function Table() {
                                         className="max-w-[100px] h-[130px] w-auto object-contain"
                                         alt={`Variant ${vIndex + 1}`}
                                       />
-                                      <p>{v.desc}</p>
+                                      <p>{shortenDesc(v.desc)}</p>
                                     </div>
                                   ) : (
                                     <span
@@ -183,7 +205,7 @@ function Table() {
                             <td className="p-6 text-3xl">
                               <div className="flex m-0 items-center justify-center cursor-pointer">
                                 <span
-                                  className="bg-white p-1 px-3 rounded-md border-[1px] border-gray-200"
+                                  className="bg-white p-1 px-3 rounded-md border-[1px] border-gray-200 flex items-center justify-center"
                                   onClick={() => handleAddColumn()}
                                 >
                                   +
@@ -205,7 +227,7 @@ function Table() {
                   className="cursor-pointer flex m-0 items-center justify-center"
                   onClick={handleAddRow}
                 >
-                  <span className="bg-white p-1 px-3 rounded-md border-[1px] border-gray-200">
+                  <span className="bg-white p-1 px-3 rounded-md border-[1px] border-gray-200 flex items-center justify-center">
                     +
                   </span>
                 </div>
@@ -214,13 +236,38 @@ function Table() {
           </table>
         </div>
       </div>
-      <Modal show={show} onHide={closeDialog} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Add Design</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>Add your design for cell:</p>
-        </Modal.Body>
+      <Modal show={show} onHide={closeDialog} size='lg' centered>
+      <div className="max-h-[500px] flex flex-col">
+            <Modal.Header>
+              <Modal.Title className="w-full">
+                <div className="flex justify-between items-center w-full">
+                  <p className="font-bold text-lg">Select a design to link</p>
+                  <div className="relative">
+                    <img src='./search.svg' className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" alt="Search" />
+                    <input
+                      className="border-[1px] border-gray-200 rounded-md w-96 pl-10 py-2 text-base"
+                      placeholder="Search"
+                    />
+                  </div>
+                </div>
+              </Modal.Title>
+            </Modal.Header>
+            <Modal.Body className="overflow-y-auto flex-grow">
+              <div className="flex flex-wrap gap-6 w-full">
+                {imgArr.map((i, ind) => (
+                  <div key={ind} className="w-[132px] flex flex-col">
+                    <img
+                      src={i}
+                      className="w-full h-full object-cover rounded-md"
+                      alt={`Design ${ind + 1}`}
+                      onClick={()=>handleDesignImg(i)}
+                    />
+                  <p className="mt-2 text-sm text-center break-words">{extractFileName(i)}</p>
+                </div>
+                ))}
+              </div>
+            </Modal.Body>
+          </div>
       </Modal>
     </>
   );
