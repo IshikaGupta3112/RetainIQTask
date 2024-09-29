@@ -65,7 +65,9 @@ const initialState={
             { img: './img3.jpeg', desc: 'product...Singleewkjnfjrwnjjj' }
           ]
         }
-    ]
+    ],
+    variantCount: 2,
+    variantName:['Primary Variant', 'Variant 2']
 };
 
 export const tableDataSlice = createSlice({
@@ -74,7 +76,7 @@ export const tableDataSlice = createSlice({
     reducers:{
         addRow:(state)=>{
         const newId = uuidv4();
-        const newVariants = Array(state.columnCount).fill().map(() => ({ img: '', desc: '' }));
+        const newVariants = Array(state.variantCount).fill().map(() => ({ img: '', desc: '' }));
         state.data.push({
         id:newId,
         filters:[],
@@ -84,9 +86,16 @@ export const tableDataSlice = createSlice({
         deleteRow:(state, action)=>{
         const deleteId = action.payload;
         state.data = state.data.filter(row=>row.id!=deleteId);
+        },
+        addColumn: (state) => {
+            state.variantCount += 1;
+            state.data.forEach(row => {
+              row.variants.push({img: '', desc: '' });
+            });
+            state.variantName.push(`Variant ${state.variantCount}`);
         }
     }
 })
 
-export const {addRow, deleteRow} = tableDataSlice.actions
+export const {addRow, deleteRow, addColumn} = tableDataSlice.actions
 export default tableDataSlice.reducer;
