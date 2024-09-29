@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 const initialState = {
   data: [
     {
-      id: 1,
+      id: "1",
       filters: [
         "image_list.Product Image 2",
         "is empty",
@@ -18,7 +18,7 @@ const initialState = {
       ],
     },
     {
-      id: 2,
+      id: "2",
       filters: ["tags", "contains", "onsale"],
       variants: [
         { img: "./img2.jpeg", desc: "product...Singleewkjnfjrwnjjj" },
@@ -26,7 +26,7 @@ const initialState = {
       ],
     },
     {
-      id: 3,
+      id: "3",
       filters: ["tags", "contains", "__label:New"],
       variants: [
         { img: "./retainiq_logo.jpeg", desc: "product...Singleewkjnfjrwnjjj" },
@@ -34,7 +34,7 @@ const initialState = {
       ],
     },
     {
-      id: 4,
+      id: "4",
       filters: ["Discount Percentage", "is", "0"],
       variants: [
         { img: "./img1.jpeg", desc: "product...Singleewkjnfjrwnjjj" },
@@ -42,7 +42,7 @@ const initialState = {
       ],
     },
     {
-      id: 5,
+      id: "5",
       filters: ["image_list.Product Image 2", "is", "empty"],
       variants: [
         { img: "./img1.jpeg", desc: "product...Singleewkjnfjrwnjjj" },
@@ -71,7 +71,7 @@ export const tableDataSlice = createSlice({
     },
     deleteRow: (state, action) => {
       const deleteId = action.payload;
-      state.data = state.data.filter((row) => row.id != deleteId);
+      state.data = state.data.filter((row) => row.id !== deleteId);
     },
     addColumn: (state) => {
       state.variantCount += 1;
@@ -82,26 +82,27 @@ export const tableDataSlice = createSlice({
     },
     deleteColumn: (state, action) => {
       const columnIndex = action.payload;
-      if (columnIndex >= 0 && columnIndex < state.variantCount && state.data) {
+      if (columnIndex >= 0 && columnIndex < state.variantCount) {
         state.variantCount -= 1;
         state.data.forEach((row) => {
-          if (row && row.variants) {
+          if (row.variants) {
             row.variants.splice(columnIndex, 1);
           }
         });
         state.variantName.splice(columnIndex, 1);
-        for (let i = columnIndex; i < state.variantName.length; i++) {
-          if (i === 0) {
-            state.variantName[i] = "Primary Variant";
-          } else {
-            state.variantName[i] = `Variant ${i + 1}`;
-          }
-        }
+        state.variantName = state.variantName.map((name, index) =>
+          index === 0 ? "Primary Variant" : `Variant ${index + 1}`
+        );
       }
+    },
+    reorderRows: (state, action) => {
+      const { sourceIndex, destinationIndex } = action.payload;
+      const [reorderedItem] = state.data.splice(sourceIndex, 1);
+      state.data.splice(destinationIndex, 0, reorderedItem);
     },
   },
 });
 
-export const { addRow, deleteRow, addColumn, deleteColumn } =
+export const { addRow, deleteRow, addColumn, deleteColumn, reorderRows } =
   tableDataSlice.actions;
 export default tableDataSlice.reducer;

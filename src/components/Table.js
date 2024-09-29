@@ -1,12 +1,23 @@
 "use client";
 
-import { addColumn, addRow, deleteColumn, deleteRow } from "@/redux/slice";
+import {
+  addColumn,
+  addRow,
+  deleteColumn,
+  deleteRow,
+  reorderRows,
+} from "@/redux/slice";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
+import Modal from "react-bootstrap/Modal";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 function Table() {
   const [hoveredRow, setHoveredRow] = useState(null);
   const [hoveredCol, setHoveredCol] = useState(null);
+  const [show, setShow] = useState(false);
+  const closeDialog = () => setShow(false);
 
   const tableData = useSelector((s) => s.tableData.data);
   const variantNames = useSelector((state) => state.tableData.variantName);
@@ -26,6 +37,25 @@ function Table() {
   const handleDeleteColumn = (index) => {
     dispatch(deleteColumn(index));
   };
+
+  const handleDesign = (id, ind) => {
+    console.log(id, ind);
+    setShow(true);
+  };
+
+  const onDragEnd = (result) => {
+    if (!result.destination) {
+      return;
+    }
+
+    dispatch(
+      reorderRows({
+        sourceIndex: result.source.index,
+        destinationIndex: result.destination.index,
+      })
+    );
+  };
+
   return (
     <>
       <div className="bg-gray-50 p-8 rounded-md border-gray-200 border-[1px]">
@@ -63,105 +93,137 @@ function Table() {
                 ))}
               </tr>
             </thead>
-            <tbody>
-              {tableData.map((s, ind) => (
-                <tr
-                  key={ind}
-                  className="text-center"
-                  onMouseEnter={() => setHoveredRow(s.id)}
-                  onMouseLeave={() => setHoveredRow(null)}
-                >
-                  <td className="sticky left-0 z-10 bg-gray-50 border-r border-gray-200 text-3xl font-bold">
-                    <div className="flex flex-col items-center">
-                      <img
-                        src="./trash.svg"
-                        alt="Delete"
-                        className={`${
-                          hoveredRow === s.id ? "visible" : "invisible"
-                        } cursor-pointer`}
-                        onClick={() => handleDeleteRow(s.id)}
-                      ></img>
-                      <div className="flex m-0 items-center justify-center">
-                        <p>{ind + 1}</p>
-                        <img src="./drag.svg" className=""></img>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="sticky z-10 bg-gray-50 left-[70px] p-6 border-r border-gray-200">
-                    <div className="bg-white border-dashed border-gray-200 border-[1px] px-6 py-4 h-48 rounded-md  flex items-center justify-center text-sm">
-                      <div className="flex flex-wrap gap-2">
-                        {s.filters.length ? (
-                          s.filters.map((f, i) => (
-                            <span
-                              className={
-                                i % 2 === 0
-                                  ? "border-[1px] border-gray-200 rounded-md py-[2px] px-3"
-                                  : "border-[1px] border-green-500 font-bold text-green-500 bg-green-100 rounded-md py-[2px] px-3"
-                              }
+            <DragDropContext onDragEnd={onDragEnd}>
+              <Droppable droppableId="table-rows">
+                {(provided) => (
+                  <tbody {...provided.droppableProps} ref={provided.innerRef}>
+                    {tableData.map((s, index) => (
+                      <Draggable key={s.id} draggableId={s.id} index={index}>
+                        {(provided, snapshot) => (
+                          <tr
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            className={`text-center ${
+                              snapshot.isDragging ? "bg-gray-100" : ""
+                            }`}
+                            onMouseEnter={() => setHoveredRow(s.id)}
+                            onMouseLeave={() => setHoveredRow(null)}
+                          >
+                            <td
+                              className="sticky left-0 z-10 bg-gray-50 border-r border-gray-200 text-3xl font-bold"
+                              {...provided.dragHandleProps}
                             >
-                              {f}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="border-[1px] border-gray-200 p-1 rounded-md px-3">
-                            + Add Product Filters
-                          </span>
+                              <div className="flex flex-col items-center">
+                                <img
+                                  src="./trash.svg"
+                                  alt="Delete"
+                                  className={`${
+                                    hoveredRow === s.id
+                                      ? "visible"
+                                      : "invisible"
+                                  } cursor-pointer`}
+                                  onClick={() => handleDeleteRow(s.id)}
+                                ></img>
+                                <div className="flex m-0 items-center justify-center">
+                                  <p>{index + 1}</p>
+                                  <img src="./drag.svg" className=""></img>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="sticky z-10 bg-gray-50 left-[70px] p-6 border-r border-gray-200">
+                              <div className="bg-white border-dashed border-gray-200 border-[1px] px-6 py-4 h-48 rounded-md  flex items-center justify-center text-sm">
+                                <div className="flex flex-wrap gap-2">
+                                  {s.filters.length ? (
+                                    s.filters.map((f, i) => (
+                                      <span
+                                        key={i}
+                                        className={
+                                          i % 2 === 0
+                                            ? "border-[1px] border-gray-200 rounded-md py-[2px] px-3"
+                                            : "border-[1px] border-green-500 font-bold text-green-500 bg-green-100 rounded-md py-[2px] px-3"
+                                        }
+                                      >
+                                        {f}
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <span className="border-[1px] border-gray-200 p-1 rounded-md px-3">
+                                      + Add Product Filters
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                            {s.variants.map((v, vIndex) => (
+                              <td
+                                key={vIndex}
+                                className="p-6 border-r border-gray-200 w-[200px]"
+                              >
+                                <div className="w-[200px] bg-white border-dashed border-gray-200 border-[1px] px-2 py-4 h-48 rounded-md flex flex-wrap items-center gap-2 justify-center text-sm">
+                                  {v.img ? (
+                                    <div className="flex flex-col justify-center items-center gap-2">
+                                      <img
+                                        src={v.img}
+                                        className="max-w-[100px] h-[130px] w-auto object-contain"
+                                        alt={`Variant ${vIndex + 1}`}
+                                      />
+                                      <p>{v.desc}</p>
+                                    </div>
+                                  ) : (
+                                    <span
+                                      className="border-[1px] border-gray-200 p-1 rounded-md px-3"
+                                      onClick={() => handleDesign(s.id, vIndex)}
+                                    >
+                                      + Add Design
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                            ))}
+                            <td className="p-6 text-3xl">
+                              <div className="flex m-0 items-center justify-center cursor-pointer">
+                                <span
+                                  className="bg-white p-1 px-3 rounded-md border-[1px] border-gray-200"
+                                  onClick={() => handleAddColumn()}
+                                >
+                                  +
+                                </span>
+                              </div>
+                            </td>
+                          </tr>
                         )}
-                      </div>
-                    </div>
-                  </td>
-                  {s.variants.map((v, index) => (
-                    <td
-                      key={index}
-                      className="p-6 border-r border-gray-200 w-[200px]"
-                    >
-                      <div className="w-[200px] bg-white border-dashed border-gray-200 border-[1px] px-2 py-4 h-48 rounded-md flex flex-wrap items-center gap-2 justify-center text-sm">
-                        {v.img ? (
-                          <div className="flex flex-col justify-center items-center gap-2">
-                            <img
-                              src={v.img}
-                              className="max-w-[100px] h-[130px] w-auto object-contain"
-                              alt={`Variant ${index + 1}`}
-                            />
-                            <p>{v.desc}</p>
-                          </div>
-                        ) : (
-                          <span className="border-[1px] border-gray-200 p-1 rounded-md px-3">
-                            + Add Design
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                  ))}
-                  <td className="p-6 text-3xl">
-                    <div className="flex m-0 items-center justify-center cursor-pointer">
-                      <span
-                        className="bg-white p-1 px-3 rounded-md border-[1px] border-gray-200"
-                        onClick={() => handleAddColumn()}
-                      >
-                        +
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              <tr>
-                <td className="border-r border-gray-200 text-3xl">
-                  <div
-                    className="cursor-pointer flex m-0 items-center justify-center"
-                    onClick={handleAddRow}
-                  >
-                    <span className="bg-white p-1 px-3 rounded-md border-[1px] border-gray-200">
-                      +
-                    </span>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </tbody>
+                )}
+              </Droppable>
+            </DragDropContext>
+            <tr>
+              <td className="border-r border-gray-200 text-3xl">
+                <div
+                  className="cursor-pointer flex m-0 items-center justify-center"
+                  onClick={handleAddRow}
+                >
+                  <span className="bg-white p-1 px-3 rounded-md border-[1px] border-gray-200">
+                    +
+                  </span>
+                </div>
+              </td>
+            </tr>
           </table>
         </div>
       </div>
+      <Modal show={show} onHide={closeDialog} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Add Design</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Add your design for cell:</p>
+        </Modal.Body>
+      </Modal>
     </>
   );
 }
+
 export default Table;
