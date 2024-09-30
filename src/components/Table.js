@@ -185,7 +185,10 @@ function Table() {
                                 ></img>
                                 <div className="flex m-0 items-center justify-center">
                                   <p className="">{index + 1}</p>
-                                  <img src="./drag.svg" className="-mt-3 w-4 md:w-6"></img>
+                                  <img
+                                    src="./drag.svg"
+                                    className="-mt-3 w-4 md:w-6"
+                                  ></img>
                                 </div>
                               </div>
                             </td>
@@ -301,7 +304,9 @@ function Table() {
           <Modal.Header>
             <Modal.Title className="w-full">
               <div className="flex justify-between items-center w-full">
-                <p className="font-bold text-lg mt-3">Select a design to link</p>
+                <p className="font-bold text-lg mt-3">
+                  Select a design to link
+                </p>
                 <div className="relative">
                   <img
                     src="./search.svg"

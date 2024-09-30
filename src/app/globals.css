@@ -38,7 +38,7 @@ body {
 }
 
 .modal-center::before {
-  content: '';
+  content: "";
   height: calc(100vh - 500px);
   display: block;
 }
