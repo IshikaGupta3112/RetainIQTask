@@ -6,7 +6,7 @@ function SideBar() {
           <img src="./retainiq_logo.jpeg" className="w-8 rounded-md" />
           <img src="./picture.svg" className="w-8"></img>
           <img src="./meta.svg" className="w-8"></img>
-          <img src="./shopping.svg" className="w-8"></img>
+          <img src="./shopify.svg" className="w-8"></img>
         </div>
         <div>
           <img src="./settings.svg" className="w-8"></img>
