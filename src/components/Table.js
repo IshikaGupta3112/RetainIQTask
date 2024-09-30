@@ -6,65 +6,102 @@ import {
   deleteColumn,
   deleteRow,
   reorderRows,
-  addImageToCell
+  addImageToCell,
 } from "@/redux/slice";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import Modal from "react-bootstrap/Modal";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { imgArr } from "./img";
 
 function Table() {
   const [hoveredRow, setHoveredRow] = useState(null);
   const [hoveredCol, setHoveredCol] = useState(null);
+  const [hoveredImage, setHoveredImage] = useState(null);
+  const [check, setCheck] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
   const [row, setRow] = useState(null);
   const [col, setCol] = useState(null);
   const [show, setShow] = useState(false);
   const closeDialog = () => setShow(false);
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredImages, setFilteredImages] = useState(imgArr);
+
   const tableData = useSelector((s) => s.tableData.data);
   const variantNames = useSelector((state) => state.tableData.variantName);
+  const msg = useSelector((state) => state.tableData.msg);
+  console.log(msg);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    const results = imgArr.filter(img =>
+      extractFileName(img).toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredImages(results);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    if (msg && check) {
+      toast.success(msg, {
+        position: "top-center",
+      });
+      setCheck(false);
+    }
+  }, [msg, check]);
 
   const handleAddRow = () => {
     dispatch(addRow());
+    setCheck(true);
   };
   const handleDeleteRow = (id) => {
     dispatch(deleteRow(id));
+    setCheck(true);
   };
 
   const handleAddColumn = () => {
     dispatch(addColumn());
+    setCheck(true);
   };
 
   const handleDeleteColumn = (index) => {
     dispatch(deleteColumn(index));
+    setCheck(true);
   };
 
-  const handleDesign = (id, ind) => {
+  const handleDesign = (id, ind, edit) => {
+    console.log(id, ind);
     setRow(id);
     setCol(ind);
     setShow(true);
+    setIsEdit(edit);
   };
 
   const extractFileName = (path) => {
-    return path.split('/').pop().split('.')[0];
+    return path.split("/").pop().split(".")[0];
   };
   const shortenDesc = (desc, maxLength = 20) => {
     if (desc.length <= maxLength) return desc;
-    return desc.slice(0, maxLength) + '...';
+    return desc.slice(0, maxLength) + "...";
   };
 
-  const handleDesignImg=(i)=>{
- dispatch(addImageToCell({
-    rowId: row,
-    variantIndex: col,
-    imagePath: i,
-    name:extractFileName(i)
-  }));
-  closeDialog();
-  }
+  const handleDesignImg = (i) => {
+    dispatch(
+      addImageToCell({
+        rowId: row,
+        variantIndex: col,
+        imagePath: i,
+        name: extractFileName(i),
+        isEdit:isEdit
+      })
+    );
+    setIsEdit(false);
+    closeDialog();
+    setCheck(true);
+  };
 
   const onDragEnd = (result) => {
     if (!result.destination) {
@@ -181,20 +218,39 @@ function Table() {
                                 key={vIndex}
                                 className="p-6 border-r border-gray-200 w-[200px]"
                               >
-                                <div className="w-[200px] bg-white border-dashed border-gray-200 border-[1px] px-2 py-4 h-48 rounded-md flex flex-wrap items-center gap-2 justify-center text-sm">
+                                <div className="w-[200px] bg-white border-dashed border-gray-200 border-[1px] px-2 py-4 h-48 rounded-md flex flex-col items-center justify-center text-sm">
                                   {v.img ? (
-                                    <div className="flex flex-col justify-center items-center gap-2">
-                                      <img
-                                        src={v.img}
-                                        className="max-w-[100px] h-[130px] w-auto object-contain"
-                                        alt={`Variant ${vIndex + 1}`}
-                                      />
-                                      <p>{shortenDesc(v.desc)}</p>
+                                    <div className="relative flex flex-col items-center">
+                                      <div className="relative">
+                                        <img
+                                          src={v.img}
+                                          className="max-w-[100px] h-[130px] w-auto object-contain"
+                                          alt={`Variant ${vIndex + 1}`}
+                                        />
+                                        <div
+                                          className={`${
+                                            hoveredRow === s.id
+                                              ? "visible"
+                                              : "invisible"
+                                          } cursor-pointer absolute inset-0 flex items-center justify-center`}
+                                          onClick={()=>handleDesign(s.id, vIndex, true)}
+                                        >
+                                          <span className="bg-white p-2 rounded-md">
+                                            <img
+                                              src="./edit.svg"
+                                              className="w-6"
+                                            />
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <p className="mt-2">
+                                        {shortenDesc(v.desc)}
+                                      </p>
                                     </div>
                                   ) : (
                                     <span
                                       className="border-[1px] border-gray-200 p-1 rounded-md px-3"
-                                      onClick={() => handleDesign(s.id, vIndex)}
+                                      onClick={() => handleDesign(s.id, vIndex, false)}
                                     >
                                       + Add Design
                                     </span>
@@ -236,39 +292,60 @@ function Table() {
           </table>
         </div>
       </div>
-      <Modal show={show} onHide={closeDialog} size='lg' centered>
-      <div className="max-h-[500px] flex flex-col">
-            <Modal.Header>
-              <Modal.Title className="w-full">
-                <div className="flex justify-between items-center w-full">
-                  <p className="font-bold text-lg">Select a design to link</p>
-                  <div className="relative">
-                    <img src='./search.svg' className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" alt="Search" />
-                    <input
-                      className="border-[1px] border-gray-200 rounded-md w-96 pl-10 py-2 text-base"
-                      placeholder="Search"
-                    />
-                  </div>
+      <Modal show={show} onHide={closeDialog} size="lg" centered>
+        <div className="min-h-[500px] max-h-[500px] flex flex-col">
+          <Modal.Header>
+            <Modal.Title className="w-full">
+              <div className="flex justify-between items-center w-full">
+                <p className="font-bold text-lg">Select a design to link</p>
+                <div className="relative">
+                  <img
+                    src="./search.svg"
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5"
+                    alt="Search"
+                  />
+                  <input
+                    className="border-[1px] border-gray-200 rounded-md w-96 pl-10 py-2 text-base"
+                    placeholder="Search"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
                 </div>
-              </Modal.Title>
-            </Modal.Header>
-            <Modal.Body className="overflow-y-auto flex-grow">
-              <div className="flex flex-wrap gap-6 w-full">
-                {imgArr.map((i, ind) => (
-                  <div key={ind} className="w-[132px] flex flex-col">
-                    <img
-                      src={i}
-                      className="w-full h-full object-cover rounded-md"
-                      alt={`Design ${ind + 1}`}
-                      onClick={()=>handleDesignImg(i)}
-                    />
-                  <p className="mt-2 text-sm text-center break-words">{extractFileName(i)}</p>
-                </div>
-                ))}
               </div>
-            </Modal.Body>
-          </div>
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body className="overflow-y-auto flex-grow">
+            <div className="flex flex-wrap gap-6 w-full">
+              {filteredImages.length==0?<span>No Matches</span>:filteredImages.map((i, ind) => (
+              <>
+                <div key={ind} className="w-[132px] flex flex-col"  onMouseEnter={() => setHoveredImage(ind)}
+                  onMouseLeave={() => setHoveredImage(null)}>
+                  <div className="flex justify-center items-center min-h-[250px] h-auto">
+                  <img
+                    src={i}
+                    className="w-full h-full object-cover rounded-md"
+                    alt={`Design ${ind + 1}`}
+                  />
+                    {hoveredImage === ind && (
+                    <button 
+                      className="absolute m-auto p-2 bg-white rounded-md "
+                      onClick={() => handleDesignImg(i)}
+                    >
+                      Insert
+                    </button>
+                  )}
+                  </div>
+                  <p className="mt-2 text-sm text-center break-words">
+                    {extractFileName(i)}
+                  </p>
+                </div>
+                </>
+              ))}
+            </div>
+          </Modal.Body>
+        </div>
       </Modal>
+      <ToastContainer />
     </>
   );
 }

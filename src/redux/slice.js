@@ -52,6 +52,7 @@ const initialState = {
   ],
   variantCount: 2,
   variantName: ["Primary Variant", "Variant 2"],
+  msg:''
 };
 
 export const tableDataSlice = createSlice({
@@ -68,10 +69,12 @@ export const tableDataSlice = createSlice({
         filters: [],
         variants: newVariants,
       });
+      state.msg = 'State Added';
     },
     deleteRow: (state, action) => {
       const deleteId = action.payload;
       state.data = state.data.filter((row) => row.id !== deleteId);
+      state.msg = 'State Removed!'
     },
     addColumn: (state) => {
       state.variantCount += 1;
@@ -79,9 +82,10 @@ export const tableDataSlice = createSlice({
         row.variants.push({ img: "", desc: "" });
       });
       state.variantName.push(`Variant ${state.variantCount}`);
+      state.msg = 'Variant Added';
     },
     deleteColumn: (state, action) => {
-      const columnIndex = action.payload;
+      const columnIndex= action.payload;
       if (columnIndex >= 0 && columnIndex < state.variantCount) {
         state.variantCount -= 1;
         state.data.forEach((row) => {
@@ -93,6 +97,7 @@ export const tableDataSlice = createSlice({
         state.variantName = state.variantName.map((name, index) =>
           index === 0 ? "Primary Variant" : `Variant ${index + 1}`
         );
+        state.msg = 'Variant Removed!'
       }
     },
     reorderRows: (state, action) => {
@@ -101,13 +106,15 @@ export const tableDataSlice = createSlice({
       state.data.splice(destinationIndex, 0, reorderedItem);
     },
     addImageToCell: (state, action) => {
-        const { rowId, variantIndex, imagePath, name } = action.payload;
+        const { rowId, variantIndex, imagePath, name, isEdit } = action.payload;
         console.log( rowId, variantIndex, imagePath);
         const rowToUpdate = state.data.find(row => row.id === rowId);
         if (rowToUpdate && rowToUpdate.variants[variantIndex]) {
           rowToUpdate.variants[variantIndex].img = imagePath;
           rowToUpdate.variants[variantIndex].desc = name;
         }
+        if(isEdit) state.msg = 'Design Edited';
+        else state.msg = 'Design Added'
       },
   },
 });
