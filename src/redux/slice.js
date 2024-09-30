@@ -113,8 +113,8 @@ export const tableDataSlice = createSlice({
           rowToUpdate.variants[variantIndex].img = imagePath;
           rowToUpdate.variants[variantIndex].desc = name;
         }
-        if(isEdit) state.msg = 'Design Edited';
-        else state.msg = 'Design Added'
+        if(isEdit) state.msg = 'Template Edited';
+        else state.msg = 'Variant template updated'
       },
   },
 });
